@@ -1,0 +1,12 @@
+#root {
+  min-width: 330px;
+}
+
+.error-box {
+  background-color: rgb(243, 143, 143);
+  margin: 5% 0;
+  padding: 2%;
+  border: 1px solid red;
+  border-radius: 5px;
+  color: #343131;
+}

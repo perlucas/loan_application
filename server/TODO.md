@@ -1,0 +1,9 @@
+- endpoint for retrieving the companies [done]
+- endpoint for creating companies [done]
+- endpoint for retrieving the accounting systems [done]
+- process details submission and ask for balance sheet [pending]
+- process application submission and ask for result [pending]
+    - store application to keep historical record
+- integrate with frontend [pending]
+- unmount React create app frontend [pending]
+- use Docker [pending]
