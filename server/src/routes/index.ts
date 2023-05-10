@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { dbInstance } from "../../db";
-import { CompanyController, AccountingSystemController } from "../controllers";
+import { CompanyController, AccountingSystemController, LoanApplicationController } from "../controllers";
 import { DBAccountingSystemRepository, DBCompanyRepository } from "../impl";
 
 const router = Router()
@@ -18,5 +18,9 @@ const accountingSystemController = new AccountingSystemController(
 )
 
 router.get('/accounting_system', accountingSystemController.method(accountingSystemController.fetchSystems))
+
+const loanApplicationController = new LoanApplicationController()
+
+router.post('/loan/request', loanApplicationController.method(loanApplicationController.submitApplication))
 
 export default router

@@ -23,7 +23,7 @@ const run = async () => {
         .then(() => {
             return dbInstance()('accounting_system').insert([
                 { name: 'XERO' },
-                { name: 'MIOB' },
+                { name: 'MYOB' },
             ])
         })
 

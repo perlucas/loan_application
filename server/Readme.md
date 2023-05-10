@@ -71,10 +71,7 @@ HTTP 200
             "id": 100,
             "name": "Google"
         },
-        "amount": 30000,
-        "profit": {
-            "year": 15000
-        }
+        "amount": 30000
     }
 }
 
