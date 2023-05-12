@@ -15,7 +15,7 @@ export class LoanApplicationDetailsNodeCache implements LoanApplicationDetailsCa
         const now = new Date()
         for (const [token, stored] of entries) {
             const { expireAt } = stored
-            if (expireAt.getTime() > now.getTime()) {
+            if (expireAt.getTime() < now.getTime()) {
                 this.cache.delete(token)
             }
         }
@@ -37,5 +37,10 @@ export class LoanApplicationDetailsNodeCache implements LoanApplicationDetailsCa
 
         const { value: details } = this.cache.get(token)
         return details
+    }
+
+    remove(token: string): Promise<void> {
+        this.cache.delete(token)
+        return Promise.resolve()
     }
 }

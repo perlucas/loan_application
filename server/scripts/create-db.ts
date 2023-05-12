@@ -26,6 +26,16 @@ const run = async () => {
                 { name: 'MYOB' },
             ])
         })
+        .then(() => {
+            return dbInstance().schema.createTable('loan_applications', function (table) {
+                table.increments('id', { primaryKey: true });
+                table.integer('accounting_system_id').references('id').inTable('accounting_system');
+                table.integer('company_id').references('id').inTable('company');
+                table.float('amount');
+                table.float('preassessment');
+                table.string('result');
+            })
+        })
 
 
 }

@@ -15,11 +15,12 @@ app.use(cors(corsOptions))
 
 app.use(json())
 
-app.use(router)
+app.use((req, _, next) => {
+	console.log(`Received request to ${req.url}, body: ${JSON.stringify(req.body)}`)
+	next()
+})
 
-app.get('/', (_req, _res) => {
-	_res.send("TypeScript With Express");
-});
+app.use(router)
 
 app.listen(port, () => {
 	console.log(`App server running in http://localhost:${port}`)

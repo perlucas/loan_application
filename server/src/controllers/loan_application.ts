@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { createDetailsFromBalanceSheet, LoanApplicationResult } from "../domain";
 import { computePreassessment } from "../domain/loan_application_details";
-import { toLoanApplicationDetailsJson } from "../network";
+import { toLoanApplicationDetailsJson, toLoanApplicationResultJson } from "../network";
 import { AccountingSystemRepository, CompanyRepository, LoanApplicationResultRepository } from "../repositories";
 import { AccountingProviderFactory, LoanApplicationDetailsCache } from "../services/accounting";
 import { DecisionEngine } from "../services/decision";
@@ -49,7 +49,7 @@ export class LoanApplicationController extends Controller {
             await this.applicationCache.store(
                 loanApplicationDetails.token,
                 loanApplicationDetails,
-                15 * 1000 // TTL: 15 min.
+                15 * 60 * 1000 // TTL: 15 min.
             )
 
             return loanApplicationDetails
@@ -99,7 +99,17 @@ export class LoanApplicationController extends Controller {
             decision
         )
 
-        const storedResult = await this.applicationResultRepository.saveResult(result)
+        const [storedResult, dbErr] = await this.tryCatchSurround(async () => {
+            await this.applicationCache.remove(token)
+            return this.applicationResultRepository.saveResult(result)
+        })
+        if (dbErr) {
+            return res.status(LoanApplicationController.httpInternalErrorCode())
+                .json({
+                    error: { code: 'INTERNAL_ERROR' }
+                })
+        }
+
         return res.status(LoanApplicationController.httpCreatedCode())
             .json({
                 /* @ts-ignore */

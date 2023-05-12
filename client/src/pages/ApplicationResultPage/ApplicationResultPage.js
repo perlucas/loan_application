@@ -2,7 +2,8 @@ import Container from "../../layout/Container/Container";
 import ApplicationSummary from "../../components/ApplicationSummary/ApplicationSummary";
 
 function ApplicationResultPage(props) {
-    const { approved } = props.data
+    const { result } = props.data
+    const approved = result === 'APPROVED'
 
     return <Container links={[
         { path: '/', label: 'Apply for Loan' }

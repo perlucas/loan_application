@@ -2,6 +2,7 @@ import { Router } from "express";
 import { dbInstance } from "../../db";
 import { CompanyController, AccountingSystemController, LoanApplicationController } from "../controllers";
 import { repositories, accounting } from "../impl";
+import { DecisionEngineImpl } from "../impl/decision/engine";
 
 const router = Router()
 
@@ -22,8 +23,10 @@ router.get('/accounting_system', accountingSystemController.method(accountingSys
 const loanApplicationController = new LoanApplicationController(
     companyRepository,
     accountingSystemRepository,
+    new repositories.DBLoanApplicationResultRepository(dbInstance()),
     new accounting.AccountingProviderFactoryImpl(),
-    new accounting.LoanApplicationDetailsNodeCache()
+    new accounting.LoanApplicationDetailsNodeCache(),
+    new DecisionEngineImpl()
 )
 
 router.post('/loan/request', loanApplicationController.method(loanApplicationController.submitApplication))

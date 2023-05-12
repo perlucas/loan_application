@@ -3,10 +3,12 @@ import ApplicationFormPage from "../ApplicationFormPage/ApplicationFormPage";
 import ReviewDetailsPage from "../ReviewDetailsPage/ReviewDetailsPage";
 import ErrorPage from "../ErrorPage/ErrorPage";
 import ApplicationResultPage from "../ApplicationResultPage/ApplicationResultPage";
+import { postRequest } from "../../services";
 
 const SUBMITTING_APPLICATION = 'SUBMITTING_APPLICATION'
 const REVIEWING_APPLICATION = 'REVIEWING_APPLICATION'
 const REVIEWING_APPLICATION_RESULT = 'REVIEWING_APPLICATION_RESULT'
+const ERRORED = 'ERRORED'
 
 function ApplicationPage() {
     const [workflowStatus, setWorkflowStatus] = useState(SUBMITTING_APPLICATION)
@@ -16,40 +18,40 @@ function ApplicationPage() {
     const handlers = {
         handleApplicationRequested: function (data) {
             console.log(data)
-            const { amount } = data
+            const { companyId, systemId, amount } = data
 
-            setLoanApplicationDetails({
-                token: 'abcd-efgh-123-456',
-                company: {
-                    name: 'Fake company 1'
-                },
-                accountingSystem: {
-                    name: 'Fake system 1'
-                },
-                profit: 12300.57,
-                amount
+            postRequest('/loan/request', {
+                amount,
+                company_id: companyId,
+                accounting_system_id: systemId
             })
-
-            setWorkflowStatus(REVIEWING_APPLICATION)
+                .then(({ result: loanDetails }) => {
+                    setLoanApplicationDetails({
+                        ...loanDetails,
+                        accountingSystem: loanDetails.accounting_system
+                    })
+                    setWorkflowStatus(REVIEWING_APPLICATION)
+                })
+                .catch(() => {
+                    setWorkflowStatus(ERRORED)
+                })
         },
 
         handleApplicationConfirmed: function () {
             console.log('confirmation sent!')
 
-            setLoanApplicationDetails(prev => ({
-                token: 'abcd-efgh-123-456',
-                company: {
-                    name: 'Fake company 1'
-                },
-                accountingSystem: {
-                    name: 'Fake system 1'
-                },
-                profit: 12300.57,
-                amount: prev.amount,
-                approved: false
-            }))
+            postRequest('/loan/confirm', { token: loanApplicationDetails.token })
+                .then(({ result: loanDetails }) => {
+                    setLoanApplicationDetails({
+                        ...loanDetails,
+                        accountingSystem: loanDetails.accounting_system
+                    })
 
-            setWorkflowStatus(REVIEWING_APPLICATION_RESULT)
+                    setWorkflowStatus(REVIEWING_APPLICATION_RESULT)
+                })
+                .catch(() => {
+                    setWorkflowStatus(ERRORED)
+                })
         },
 
         handleApplicationCancelled: function () {
@@ -70,7 +72,9 @@ function ApplicationPage() {
 
         [REVIEWING_APPLICATION_RESULT]: () => <ApplicationResultPage
             data={loanApplicationDetails}
-        />
+        />,
+
+        [ERRORED]: () => <ErrorPage />
     }
 
     return componentsByStatus[workflowStatus]()

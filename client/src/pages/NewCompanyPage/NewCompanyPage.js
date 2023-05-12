@@ -2,6 +2,7 @@ import { isString } from "lodash/lang";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Container from "../../layout/Container/Container";
+import { postRequest } from "../../services";
 
 function isValidCompany({ name, establishedAt }) {
     const isValidName = isString(name) && name.length > 0
@@ -35,7 +36,12 @@ function NewCompanyPage(props) {
                 return
             }
 
-            navigate('/')
+            postRequest('/company', {
+                name: company.name,
+                established_at: company.establishedAt
+            })
+                .then(() => navigate('/'))
+                .catch(() => setHasError(true))
         }
     }
 

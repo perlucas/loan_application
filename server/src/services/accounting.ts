@@ -12,4 +12,6 @@ export interface LoanApplicationDetailsCache {
     store(token: string, details: LoanApplicationDetails, ttl: number): Promise<void>
 
     fetch(token: string): Promise<LoanApplicationDetails | null>
+
+    remove(token: string): Promise<void>
 }

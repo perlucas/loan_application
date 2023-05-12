@@ -1,5 +1,6 @@
 import { isEmpty, isString } from "lodash/lang";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { getRequest } from "../../services";
 
 function isValidInput({ companyId, systemId, amount }) {
     const isValidId = value => !isEmpty(value) &&
@@ -21,6 +22,10 @@ function ApplicationForm(props) {
     })
 
     const [hasError, setHasError] = useState(false)
+
+    const [companies, setCompanies] = useState([])
+
+    const [systems, setSystems] = useState([])
 
     const handlers = {
         handleCompanyPicked: function (evt) {
@@ -48,6 +53,20 @@ function ApplicationForm(props) {
         }
     }
 
+    useEffect(() => {
+        getRequest('/company')
+            .then(({ result: companies }) => {
+                setCompanies(companies)
+            })
+            .catch(() => setCompanies([]))
+
+        getRequest('/accounting_system')
+            .then(({ result: systems }) => {
+                setSystems(systems)
+            })
+            .catch(() => setSystems([]))
+    }, [])
+
     return <React.Fragment>
         <h1>Submit Loan Application</h1>
         {hasError && <div className="error-box">Some entered values are invalid, please correct them and try again!</div>}
@@ -62,9 +81,7 @@ function ApplicationForm(props) {
                         onChange={handlers.handleCompanyPicked}
                     >
                         <option value="">Select a company...</option>
-                        <option value="1">Fake company 1</option>
-                        <option value="2">Fake company 2</option>
-                        <option value="3">Fake company 3</option>
+                        {companies.map(c => <option value={c.id + ''}>{c.name}</option>)}
                     </select>
                 </div>
                 <div>
@@ -76,9 +93,7 @@ function ApplicationForm(props) {
                         onChange={handlers.handleSystemPicked}
                     >
                         <option value="">Select a system...</option>
-                        <option value="1">XERO</option>
-                        <option value="2">MIOB</option>
-                        <option value="3">Fake company 3</option>
+                        {systems.map(s => <option value={s.id + ''}>{s.name}</option>)}
                     </select>
                 </div>
             </div>
