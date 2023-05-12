@@ -1,4 +1,5 @@
-import { AccountingSystem, Company, LoanApplicationDetails } from "../domain";
+import { AccountingSystem, Company, LoanApplicationDetails, LoanApplicationResult } from "../domain";
+import { DecisionCode } from "../services/decision";
 
 interface CompanyJson {
     id: number | null,
@@ -16,6 +17,14 @@ interface LoanApplicationDetailsJson {
     company: CompanyJson,
     accounting_system: AccountingSystemJson,
     amount: number
+}
+
+interface LoanApplicationResultJson {
+    id: number | null,
+    company: CompanyJson,
+    accounting_system: AccountingSystemJson,
+    amount: number,
+    result: DecisionCode
 }
 
 export function toCompanyJson(c: Company): CompanyJson {
@@ -46,4 +55,14 @@ export function toLoanApplicationDetailsJson(
         accounting_system: toAccountingSystemJson(s),
         amount: d.amount
     }
-} 
+}
+
+export function toLoanApplicationResultJson(r: LoanApplicationResult): LoanApplicationResultJson {
+    return {
+        id: r.getId(),
+        company: toCompanyJson(r.getCompany()),
+        accounting_system: toAccountingSystemJson(r.getAccountingSystem()),
+        amount: r.getAmount(),
+        result: r.getResult()
+    }
+}

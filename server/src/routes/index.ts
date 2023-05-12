@@ -1,26 +1,33 @@
 import { Router } from "express";
 import { dbInstance } from "../../db";
 import { CompanyController, AccountingSystemController, LoanApplicationController } from "../controllers";
-import { DBAccountingSystemRepository, DBCompanyRepository } from "../impl";
+import { repositories, accounting } from "../impl";
 
 const router = Router()
 
-const companyController = new CompanyController(
-    new DBCompanyRepository(dbInstance())
-)
+const companyRepository = new repositories.DBCompanyRepository(dbInstance())
+const companyController = new CompanyController(companyRepository)
 
 router.get('/company', companyController.method(companyController.fetchCompanies))
 
 router.post('/company', companyController.method(companyController.createCompany))
 
+const accountingSystemRepository = new repositories.DBAccountingSystemRepository(dbInstance())
 const accountingSystemController = new AccountingSystemController(
-    new DBAccountingSystemRepository(dbInstance())
+    accountingSystemRepository
 )
 
 router.get('/accounting_system', accountingSystemController.method(accountingSystemController.fetchSystems))
 
-const loanApplicationController = new LoanApplicationController()
+const loanApplicationController = new LoanApplicationController(
+    companyRepository,
+    accountingSystemRepository,
+    new accounting.AccountingProviderFactoryImpl(),
+    new accounting.LoanApplicationDetailsNodeCache()
+)
 
 router.post('/loan/request', loanApplicationController.method(loanApplicationController.submitApplication))
+
+router.post('/loan/confirm', loanApplicationController.method(loanApplicationController.confirmApplication))
 
 export default router

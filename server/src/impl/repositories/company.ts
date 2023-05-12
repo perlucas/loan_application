@@ -34,4 +34,22 @@ export class DBCompanyRepository implements CompanyRepository {
             storedCompany.id
         )
     }
+
+    async fetchById(id: string | number): Promise<Company | null> {
+        const result = await this.db('company')
+            .where('id', id)
+            .limit(1)
+            .select()
+
+        if (result.length > 0) {
+            const [data] = result
+            return new Company(
+                data.name,
+                new Date(data.established_at),
+                data.id
+            )
+        }
+
+        return null
+    }
 }

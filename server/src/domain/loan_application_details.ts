@@ -18,11 +18,12 @@ export function createDetailsFromBalanceSheet(
     amount: number,
     sheet: BalanceSheet
 ): LoanApplicationDetails {
-    if (!company || !company.getId) {
+
+    if (!company || !company.getId()) {
         throw new Error('invalid company')
     }
 
-    if (!accountingSystem || !accountingSystem.getId) {
+    if (!accountingSystem || !accountingSystem.getId()) {
         throw new Error('invalid accounting system')
     }
 
@@ -38,7 +39,17 @@ export function createDetailsFromBalanceSheet(
         accountingSystemId: accountingSystem.getId(),
         amount,
         profitInAYear: sheet.getProfitOrLossForLastNMonths(12),
-        averageAssetsInAYear: sheet.getProfitOrLossForLastNMonths(12),
+        averageAssetsInAYear: sheet.getAverageAssetsValueForLastNMonths(12),
         token: uuidv4()
     }
+}
+
+export function computePreassessment(details: LoanApplicationDetails): number {
+    if (details.averageAssetsInAYear > details.amount) {
+        return 100
+    }
+
+    return details.profitInAYear > 0
+        ? 60
+        : 20
 }

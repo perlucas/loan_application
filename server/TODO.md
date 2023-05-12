@@ -6,4 +6,5 @@
     - store application to keep historical record
 - integrate with frontend [pending]
 - unmount React create app frontend [pending]
+- write unit tests [pending]
 - use Docker [pending]

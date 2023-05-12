@@ -26,7 +26,7 @@ export default class Company {
             throw new Error('name should not be empty')
         }
 
-        const datePattern = /\d{4}-\d{2}-\d{2}/
+        const datePattern = /^\d{4}-\d{2}-\d{2}$/
         if (!datePattern.test(establishedAt)) {
             throw new Error('establishedAt is invalid')
         }

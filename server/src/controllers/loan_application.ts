@@ -1,8 +1,10 @@
 import { Request, Response } from "express";
-import { createDetailsFromBalanceSheet } from "../domain";
+import { createDetailsFromBalanceSheet, LoanApplicationResult } from "../domain";
+import { computePreassessment } from "../domain/loan_application_details";
 import { toLoanApplicationDetailsJson } from "../network";
-import { AccountingSystemRepository, CompanyRepository } from "../repositories";
+import { AccountingSystemRepository, CompanyRepository, LoanApplicationResultRepository } from "../repositories";
 import { AccountingProviderFactory, LoanApplicationDetailsCache } from "../services/accounting";
+import { DecisionEngine } from "../services/decision";
 import { Controller } from "./controller";
 
 export class LoanApplicationController extends Controller {
@@ -10,8 +12,10 @@ export class LoanApplicationController extends Controller {
     constructor(
         private companyRepository: CompanyRepository,
         private accountingSystemRepository: AccountingSystemRepository,
+        private applicationResultRepository: LoanApplicationResultRepository,
         private accountingProviderFactory: AccountingProviderFactory,
-        private applicationCache: LoanApplicationDetailsCache
+        private applicationCache: LoanApplicationDetailsCache,
+        private decisionEngine: DecisionEngine
     ) {
         super()
     }
@@ -23,15 +27,15 @@ export class LoanApplicationController extends Controller {
             amount
         } = req.body
 
-        const [
-            company,
-            accountingSystem
-        ] = await Promise.all([
-            this.companyRepository.fetchById(companyId),
-            this.accountingSystemRepository.fetchById(accountingSystemId)
-        ])
+        let company = null
+        let accountingSystem = null
 
         const [details, err] = await this.tryCatchSurround(async () => {
+            [company, accountingSystem] = await Promise.all([
+                this.companyRepository.fetchById(companyId),
+                this.accountingSystemRepository.fetchById(accountingSystemId)
+            ])
+
             const provider = await this.accountingProviderFactory.createProvider(accountingSystem)
             const loanApplicationDetails = createDetailsFromBalanceSheet(
                 /* @ts-ignore */
@@ -64,4 +68,43 @@ export class LoanApplicationController extends Controller {
                 result: toLoanApplicationDetailsJson(details, company, accountingSystem)
             })
     }
+
+    async confirmApplication(req: Request, res: Response) {
+        const { token } = req.body
+
+        const [details, err] = await this.tryCatchSurround(async () => {
+            if (!token) {
+                throw new Error()
+            }
+
+            return this.applicationCache.fetch(token)
+        })
+
+        if (err || !details) {
+            return res.status(LoanApplicationController.httpBadRequestCode())
+                .json({
+                    error: { code: 'INVALID_OPERATION' }
+                })
+        }
+
+        const preAssessment = computePreassessment(details)
+        const decision = await this.decisionEngine.computeDecision(details, preAssessment)
+
+        const result = new LoanApplicationResult(
+            /* @ts-ignore */
+            await this.companyRepository.fetchById(details.companyId),
+            await this.accountingSystemRepository.fetchById(details.accountingSystemId),
+            details.amount,
+            preAssessment,
+            decision
+        )
+
+        const storedResult = await this.applicationResultRepository.saveResult(result)
+        return res.status(LoanApplicationController.httpCreatedCode())
+            .json({
+                /* @ts-ignore */
+                result: toLoanApplicationResultJson(storedResult)
+            })
+    }
+
 }
