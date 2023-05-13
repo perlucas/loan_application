@@ -104,14 +104,14 @@ HTTP 200
             "name": "Google"
         },
         "amount": 30000,
-        "approved": true
+        "result": "APPROVED"
     }
 }
 
-HTTP 500
+HTTP 400
 {
     "error": {
-        "code": "UNKNOWN_TOKEN"
+        "code": "INVALID_OPERATION"
     }
 }
 ```
